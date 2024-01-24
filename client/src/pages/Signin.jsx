@@ -7,6 +7,7 @@ import {
   signInSuccess,
 } from "../redux/user/userSlice";
 import toast from "react-hot-toast";
+import OAuth from "../components/OAuth";
 
 export const SignIn = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ export const SignIn = () => {
         >
           {loading ? "Loading" : "Sign In"}
         </button>
+        <OAuth />
       </form>
       <div className="flex gap-2 mt-5">
         <p>Dont Have an Account?</p>

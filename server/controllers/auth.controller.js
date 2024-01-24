@@ -3,6 +3,7 @@ import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error.utils.js";
 import jwt from "jsonwebtoken";
 
+/* REGISTER */
 export const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
   const salt = await bcryptjs.genSalt();
@@ -16,6 +17,7 @@ export const signup = async (req, res, next) => {
   }
 };
 
+/* LOGIN */
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
   try {
@@ -36,6 +38,48 @@ export const signin = async (req, res, next) => {
       })
       .status(200)
       .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* GOOGLE AUTH */
+export const google = async (req, res, next) => {
+  let username = req.body.name;
+
+  if (username && username.includes(" ")) {
+    // If the username has spaces, remove them and convert to lowercase
+    username = username.replace(/\s+/g, "").toLowerCase();
+  } else {
+    // If no spaces or username is not provided, use the original username
+    username = username; // Use the original username or an empty string
+  }
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    } else {
+      const genPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(genPassword, 10);
+      const newUser = new User({
+        username: username + Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        password: hashedPassword,
+        avatar: req.body.photo,
+      });
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = newUser._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    }
   } catch (error) {
     next(error);
   }
