@@ -151,7 +151,6 @@ export default function CreateListing() {
       }
       toast.success(" Listing Updated!");
       setLoading(false);
-      console.log(data);
       navigate(`/listing/${data._id}`);
     } catch (error) {
       toast.error(error.message);
