@@ -4,15 +4,16 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { app } from "../firebase";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const params = useParams();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,6 +31,19 @@ export default function CreateListing() {
     furnished: false,
   });
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      const listingId = params.listingId;
+      const response = await fetch(`/api/listing/get/${listingId}`);
+      const data = await response.json();
+      if (data.message === false) {
+        return toast.error(data.message);
+      }
+      setFormData(data);
+    };
+    fetchListing();
+  }, [params.listingId]);
 
   const handleImageSubmit = () => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
@@ -122,7 +136,7 @@ export default function CreateListing() {
         );
       }
       setLoading(true);
-      const response = await fetch("/api/listing/create", {
+      const response = await fetch(`/api/listing/update/${params.listingId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -135,8 +149,9 @@ export default function CreateListing() {
         toast.error(data.message);
         setLoading(false);
       }
-      toast.success("New Listing Created!");
+      toast.success(" Listing Updated!");
       setLoading(false);
+      console.log(data);
       navigate(`/listing/${data._id}`);
     } catch (error) {
       toast.error(error.message);
@@ -147,7 +162,7 @@ export default function CreateListing() {
   return (
     <main className="p-3 max-w-4xl mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">
-        Create a Listing
+        Update a Listing
       </h1>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-col gap-4 flex-1">
@@ -344,7 +359,7 @@ export default function CreateListing() {
             disabled={loading || uploading}
             className="p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
           >
-            {loading ? "Creating..." : "Create Listing"}
+            {loading ? "Updating..." : "Update Listing"}
           </button>
         </div>
       </form>
