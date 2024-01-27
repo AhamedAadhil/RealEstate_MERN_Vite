@@ -14,6 +14,7 @@ import {
   FaChair,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import Contact from "../components/Contact";
 
 export default function Listing() {
   const params = useParams();
@@ -146,7 +147,7 @@ export default function Listing() {
                 Contact landlord
               </button>
             )}
-            {/* {contact && <Contact listing={listing} />} */}
+            {contact && <Contact listing={listing} />}
           </div>
         </div>
       )}
